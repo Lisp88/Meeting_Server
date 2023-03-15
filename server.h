@@ -4,5 +4,7 @@
 
 #ifndef YY_SERVER_SERVER_H
 #define YY_SERVER_SERVER_H
-
+class Server{
+    
+};
 #endif //YY_SERVER_SERVER_H

@@ -2,8 +2,8 @@
 // Created by shotacon on 23-3-14.
 //
 
-#ifndef YY_SERVER_LOG_H
-#define YY_SERVER_LOG_H
+#ifndef YY_SERVER_LOCK_H
+#define YY_SERVER_LOCK_H
 
 #include <exception>
 #include <pthread.h>
@@ -116,4 +116,4 @@ private:
     //static pthread_mutex_t m_mutex;
     pthread_cond_t m_cond;
 };
-#endif //YY_SERVER_LOG_H
+#endif //YY_SERVER_LOCK_H
