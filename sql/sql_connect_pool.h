@@ -5,59 +5,52 @@
 #ifndef YY_SERVER_SQL_CONNECT_POOL_H
 #define YY_SERVER_SQL_CONNECT_POOL_H
 
-#include <stdio.h>
-#include <list>
-#include <mysql/mysql.h>
-#include <error.h>
-#include <string.h>
-#include <iostream>
-#include <string>
-
 #include "../lock/lock.h"
+#include "mysql/mysql.h"
+
+#include <string>
+#include <list>
 
 
-using namespace std;
+using std::string;
+using std::list;
 
-class connection_pool
-{
+class Sql_Connection_Pool{
 public:
-    MYSQL *GetConnection();				 //获取数据库连接
-    bool ReleaseConnection(MYSQL *conn); //释放连接
-    void DestroyPool();					 //销毁所有连接
+    MYSQL * Get_sql_connect();
+    bool Realse_sql_connect(MYSQL * sql_conn);
+    void Destroy_pool();
 
-    //单例模式
-    static connection_pool *GetInstance();
+    static Sql_Connection_Pool * Get_instance();
 
-    void init(string url, string User, string PassWord, string DataBaseName, int Port, int MaxConn);
+    void init(string url, unsigned port, string user, string password, string database_name, int max_conn);
 
 private:
-    connection_pool();
-    ~connection_pool();
+    Sql_Connection_Pool();
+    Sql_Connection_Pool(const Sql_Connection_Pool & conn_pool);
+    ~Sql_Connection_Pool();
 
-    int m_MaxConn;  //最大连接数
-    int m_CurConn;  //当前已使用的连接数
-    locker lock;
-    list<MYSQL *> connList; //连接池
-    sem reserve;
-
+    int m_max_conn_num;
+    int m_cur_conn_num;
+    int m_free_conn_num;
+    locker m_lock;
+    sem m_sem;
+    list<MYSQL *> m_conn_list;
 public:
-    string m_url;			 //主机地址
-    string m_Port;		 //数据库端口号
-    string m_User;		 //登陆数据库用户名
-    string m_PassWord;	 //登陆数据库密码
-    string m_DatabaseName; //使用数据库名
-    //int m_close_log;	//日志开关
+    string m_url;
+    short m_port;
+    string m_user;
+    string m_password;
+    string m_database_name;
 };
 
-class connectionRAII{
-
+class Connection_RAII{
 public:
-    connectionRAII(MYSQL **con, connection_pool *connPool);
-    ~connectionRAII();
-
+    Connection_RAII(MYSQL ** conn, Sql_Connection_Pool * conn_pool);
+    ~Connection_RAII();
 private:
-    MYSQL *conRAII;
-    connection_pool *poolRAII;
+    MYSQL * m_conn;
+    Sql_Connection_Pool * m_sql_conn_pool;
 };
 
 #endif //YY_SERVER_SQL_CONNECT_POOL_H
