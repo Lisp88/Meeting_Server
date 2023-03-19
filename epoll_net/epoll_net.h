@@ -19,11 +19,14 @@ using namespace std;
 
 class Epoll_Net{
 public:
-    void Init(int thread_max, int thread_min, int task_max);
+    Epoll_Net():m_epoll(0), m_listen_fd(0){}
+
+    void Init(int thread_max, int thread_min, int task_max, void (*call_back)(int, char*, int));
 
     void Listen_events();
 
     void Loop_listen();
+
 private:
 
     //监听树的节点控制
@@ -31,7 +34,7 @@ private:
 
     void Del_fd(int fd);
 
-    bool Accept_client(int client_fd);
+    bool Accept_client();
 
     //文件属性修改
     void Setnoblock(int fd);
@@ -54,7 +57,7 @@ private:
     static void* Package_deal(void*);
 
     //接收包之后解析协议的回调函数
-    void (*call_back)(int, char*, int);
+    void (*m_call_back)(int, char*, int);
 
 private:
     int m_epoll;

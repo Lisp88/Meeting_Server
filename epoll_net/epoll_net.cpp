@@ -4,8 +4,9 @@
 
 #include "epoll_net.h"
 
-void Epoll_Net::Init(int thread_max, int thread_min, int task_max) {
-//创建线程池
+void Epoll_Net::Init(int thread_max, int thread_min, int task_max, void (*call_back)(int, char*, int)) {
+    m_call_back = call_back;
+    //创建线程池
     m_thread_pool = new Thread_Pool(thread_max, thread_min, task_max);
 }
 
@@ -41,12 +42,11 @@ void Epoll_Net::Loop_listen() {
             int sock_fd = m_events[i].data.fd;
             //客户端连接
             if(sock_fd == m_listen_fd){
-                printf("server accept client %d connection", sock_fd);
-                Accept_client(sock_fd);
+                Accept_client();
             }
                 //客户端读操作
             else if(m_events[i].events & EPOLLIN){
-                printf("server recv client %d data, read data", sock_fd);
+                printf("server recv client %d data, read data\n", sock_fd);
                 Deal_read(m_socket_to_client_conn[sock_fd]);
             }
                 //客户端写操作
@@ -59,7 +59,7 @@ void Epoll_Net::Loop_listen() {
 }
 
 
-bool Epoll_Net::Accept_client(int client_fd) {
+bool Epoll_Net::Accept_client() {
     struct sockaddr_in client_address;
     socklen_t sock_len = sizeof(client_address);
 
@@ -69,7 +69,7 @@ bool Epoll_Net::Accept_client(int client_fd) {
         cout << "server >> accept return con_fd < 0" << endl;
         return false;
     }
-
+    printf("server accept client :%d connection\n", con_fd);
     //创建客户端信息，并与套接字进行映射
     Client_Connect* p_client_info = new Client_Connect(this, con_fd);
     m_socket_to_client_conn[con_fd] = p_client_info;
@@ -77,14 +77,15 @@ bool Epoll_Net::Accept_client(int client_fd) {
     //禁用nagle算法
     Setnodelay(con_fd);
 
-    //设置非阻塞
-#ifdef _ET
+    //设置阻塞
+#ifdef _LT
+    //挂载客户端节点到监听树上
+    Add_fd(con_fd, false, true);
+
+#else
     Setnoblock(con_fd);
     //挂载客户端节点到监听树上
     Add_fd(con_fd, true, true);
-#else
-    //挂载客户端节点到监听树上
-    Add_fd(con_fd, false, true);
 #endif
 
     //设置内核读写缓冲区
@@ -139,13 +140,13 @@ void Epoll_Net::Deal_read(Client_Connect *client_info) {
 }
 
 void Epoll_Net::Deal_write(Client_Connect *client_info) {
-    m_thread_pool->Producer(Write_data, client_info);
+    //m_thread_pool->Producer(Write_data, client_info);
 }
 
 void *Epoll_Net::Read_data(void * arg) {
     Client_Connect* client_info = static_cast<Client_Connect*>(arg);
     int client_fd = client_info->m_client_fd;
-#ifndef _ET
+#ifdef _LT
     int pack_size = 0;
     int read_res = 0;
     char *buff;
@@ -164,7 +165,7 @@ void *Epoll_Net::Read_data(void * arg) {
             if(read_res <= 0) break;
             read_bytes += read_res;
         }
-
+        printf("epoll_net >> read_data >> data : %s\n", buff);
         Data_Package* data_package = new Data_Package(client_info->m_epoll_net, client_fd, buff, pack_size);
         client_info->m_epoll_net->m_thread_pool->Producer(Package_deal, data_package);
 
@@ -185,18 +186,21 @@ void *Epoll_Net::Read_data(void * arg) {
 }
 
 void *Epoll_Net::Write_data(void * arg) {
-    if(!arg) return nullptr;
 
-    Data_Package* package = static_cast<Data_Package*>(arg);
-    package->m_epoll_net->call_back (package->m_sock, package->m_buff, package->m_len);
 
-    if(package)
-        delete package;
+
     return nullptr;
 }
 
-void *Epoll_Net::Package_deal(void *) {
+void *Epoll_Net::Package_deal(void * arg) {
 
+    printf("package deal \n");
+    if(!arg) return nullptr;
+    Data_Package* package = static_cast<Data_Package*>(arg);
+    package->m_epoll_net->m_call_back (package->m_sock, package->m_buff, package->m_len);
+
+    if(package)
+        delete package;
     return nullptr;
 }
 

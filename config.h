@@ -8,6 +8,15 @@
 //服务器
 #define _PORT 6666
 
+//数据库
+#define _DB_IP "localhost"
+
+#define _DB_NAME "yy"
+
+#define _DB_PASSWD "88888888"
+
+#define _DB_USER "root"
+
 
 //线程池
 #define _MANAGE_LOOP_INTERVAL 5
@@ -17,7 +26,7 @@
 #define _DE_THREAD_NUM 3
 
 //epoll
-//#define _ET         0
+#define _LT         0
 
 #define _READ_SIZE 2048     //缓冲层大小
 
@@ -30,3 +39,6 @@
 #define _MAX_LISTEN_EVENT 10000
 
 #endif //YY_SERVER_CONFIG_H
+
+//logic protocol
+

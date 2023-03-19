@@ -80,7 +80,7 @@ void * Thread_Pool::Custom(void * arg)
             --(pool->m_thread_wait);
             --(pool->m_thread_alive);
             pool->lock.unlock();
-            std::cout<<"缩减一个线程"<<std::endl;
+            //std::cout<<"缩减一个线程"<<std::endl;
             pthread_exit(nullptr);
         }
 
@@ -120,13 +120,13 @@ void *Thread_Pool::Manager(void *arg)
         //扩容线程池，繁忙/存活超过百分之八十，一次添加一个
         if ((cur > alive - busy || (float) busy / alive * 100 >= (float) 80) && pool->m_thread_max >= alive+_ADD_THREAD_NUM) {
             int count = _ADD_THREAD_NUM;
-            std::cout<<"满足扩容条件"<<std::endl;
+            //std::cout<<"满足扩容条件"<<std::endl;
             for (int i = 0; i < pool->m_thread_max && count > 0; i++) {
                 //遍历，如果没有线程占用则进行扩容
                 if (pool->tids[i] == 0 || !pool->If_alive(pool->tids[i])) {
                     pool->lock.lock();
                     pthread_create(&pool->tids[i], nullptr, Custom, (void *) pool);
-                    std::cout<<"扩充一个线程"<<std::endl;
+                    //std::cout<<"扩充一个线程"<<std::endl;
                     ++pool->m_thread_alive;
                     pool->lock.unlock();
                     count--;
@@ -137,7 +137,7 @@ void *Thread_Pool::Manager(void *arg)
         //缩减，空闲线程数比繁忙的一半还多，一次回收一个
         if(busy *2 < alive - busy && alive > _DE_THREAD_NUM && alive >= pool->m_thread_min)
         {
-            std::cout<<"满足缩减条件"<<std::endl;
+            //std::cout<<"满足缩减条件"<<std::endl;
             pool->lock.lock();
             pool->m_thread_wait = _DE_THREAD_NUM;
             pool->lock.unlock();
