@@ -11,6 +11,8 @@
 
 #include "functional"
 
+
+#define NetPackMap(a)  Server::Get_instance()->m_protocol_map_table[ a - DEF_PACK_BASE ]
 class Logic;
 
 typedef void (Logic::*P_FUN)(int, char*, int);
@@ -30,6 +32,11 @@ public:
     //将包进行处理并按照协议分发工作
     static void Deal_data(int sock, char *buff, int len);
 
+    //发送包数据，作为仲介者
+//    void Send_data(int sock_fd, char* buff, int len){
+//        Data_Package* package = new Data_Package(m_epoll_net, sock_fd, buff, len);
+//        m_epoll_net->Deal_write(package);
+//    }
 private:
     Server(){}
     ~Server(){}

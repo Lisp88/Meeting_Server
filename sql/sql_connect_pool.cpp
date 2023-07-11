@@ -92,12 +92,34 @@ Sql_Connection_Pool::~Sql_Connection_Pool() {
 }
 
 
-Connection_RAII::Connection_RAII(MYSQL **conn, Sql_Connection_Pool *conn_pool) {
-    *conn  = conn_pool->Get_sql_connect();
-    m_conn = *conn;
+Connection_RAII::Connection_RAII(Sql_Connection_Pool *conn_pool) {
     m_sql_conn_pool = conn_pool;
+    m_conn = m_sql_conn_pool->Get_sql_connect();
 }
 
 Connection_RAII::~Connection_RAII() {
     m_sql_conn_pool->Realse_sql_connect(m_conn);
 }
+
+bool Connection_RAII::Select_mysql(char *sql, int column, list<string> &lst) {
+    if(mysql_query(m_conn, sql) != 0) return false;
+    MYSQL_RES* res = mysql_store_result(m_conn);
+    if(!res) return false;
+
+    MYSQL_ROW row;
+    while((row = mysql_fetch_row(res))){
+        for (int i = 0; i < column; ++i) {
+            lst.emplace_back(row[i]);
+        }
+    }
+    return true;
+}
+
+bool Connection_RAII::Update_mysql(char *sql) {
+    if(!sql) return false;
+
+    if(mysql_query(m_conn, sql) != 0) return false;
+
+    return true;
+}
+

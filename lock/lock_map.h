@@ -19,13 +19,10 @@ public:
         lock.unlock();
     }
 
-    U Find(T t){
-        U u;
+    void Find(T t, U& u){
         lock.lock();
-        if(m.count(t))
-            u = m[t];
+        u = m[t];
         lock.unlock();
-        return u;
     }
 
     void Del(T t){
@@ -35,6 +32,15 @@ public:
         lock.unlock();
     }
 
+    bool Is_exist(T t){
+        bool flag = false;
+        lock.lock();
+        if(m.count(t) > 0){
+            flag = true;
+        }
+        lock.unlock();
+        return flag;
+    }
 private:
     map<T, U> m;
     locker lock;

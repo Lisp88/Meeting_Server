@@ -9,6 +9,5 @@ int main() {
     server->Open_server(20, 10, 10000, 10);\
 
     server->Loop_events();
-
     return 0;
 }
