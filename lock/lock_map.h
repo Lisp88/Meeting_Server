@@ -41,7 +41,8 @@ public:
         lock.unlock();
         return flag;
     }
-private:
+
+public:
     map<T, U> m;
     locker lock;
 };

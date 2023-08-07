@@ -3,13 +3,12 @@
 //
 
 #include "server.h"
-#include "logic/logic.h"
+#include "../logic/logic.h"
 
 
 void Server::Deal_data(int sock, char *buff, int len) {
     Data_Package* package = static_cast<Data_Package*>((void*)buff);
     int type = *(int*)package;
-    cout<<"protocol number : "<<type<<endl;
     P_FUN pf = NetPackMap(type);
     if(pf)
         (Server::Get_instance()->m_logic->*pf)(sock, buff, len);

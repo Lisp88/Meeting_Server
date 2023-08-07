@@ -1,12 +1,8 @@
-//
-// Created by shotacon on 23-3-14.
-//
-
 #ifndef YY_SERVER_SERVER_H
 #define YY_SERVER_SERVER_H
 
-#include "epoll_net/epoll_net.h"
-#include "sql/sql_connect_pool.h"
+#include "../epoll_net/epoll_net.h"
+#include "../sql/sql_connect_pool.h"
 
 
 #include "functional"
@@ -32,11 +28,6 @@ public:
     //将包进行处理并按照协议分发工作
     static void Deal_data(int sock, char *buff, int len);
 
-    //发送包数据，作为仲介者
-//    void Send_data(int sock_fd, char* buff, int len){
-//        Data_Package* package = new Data_Package(m_epoll_net, sock_fd, buff, len);
-//        m_epoll_net->Deal_write(package);
-//    }
 private:
     Server(){}
     ~Server(){}

@@ -178,7 +178,7 @@ void *Epoll_Net::Read_data(void * arg) {
 
 void *Epoll_Net::Package_deal(void * arg) {
 
-    printf("package deal \n");
+//    printf("package deal \n");
     if(!arg) return nullptr;
     Data_Package* package = static_cast<Data_Package*>(arg);
     package->m_epoll_net->m_call_back (package->m_sock, package->m_buff, package->m_len);

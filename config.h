@@ -1,4 +1,8 @@
 //
+// Created by shotacon on 23-7-30.
+//
+
+//
 // Created by shotacon on 23-3-15.
 //
 
@@ -6,10 +10,11 @@
 #define YY_SERVER_CONFIG_H
 
 #include "cstring"
-
+#include "string"
+using std::string;
 
 //服务器
-#define _PORT 8000
+#define _PORT 6666
 
 //数据库
 #define _DB_IP "localhost"
@@ -47,7 +52,9 @@
 #define DEF_PACK_BASE  (10000)
 #define DEF_PACK_COUNT  (100)
 #define DEF_CONTENT_SIZE        (1024)
-
+#define DEF_BUFFER  ( 4096 )
+#define MAX_SIZE	(40)
+#define MAX_PATH   (260)
 //注册
 #define  DEF_PACK_REGISTER_RQ    (DEF_PACK_BASE + 0)
 #define  DEF_PACK_REGISTER_RS    (DEF_PACK_BASE + 1)
@@ -69,7 +76,7 @@
 //退出房间请求
 #define DEF_PACK_LEAVEROOM_RQ   (DEF_PACK_BASE + 11)
 //退出房间回复
-//#define DEF_PACK_LEAVEROOM_RS   (DEF_PACK_BASE + 12)
+#define DEF_PACK_OFFLINE   (DEF_PACK_BASE + 12)
 //音频注册
 #define DEF_PACK_AUDIO_REGISTER (DEF_PACK_BASE + 13)
 //视频注册
@@ -82,7 +89,18 @@
 #define DEF_PACK_CHAT_RQ       (DEF_PACK_BASE + 17)
 //聊天回复
 #define DEF_PACK_CHAT_RS       (DEF_PACK_BASE + 18)
-
+//上传文件请求
+#define DEF_PACK_UPLOAD_FILE_RQ    (DEF_PACK_BASE + 19)
+//上传文件回复
+#define DEF_PACK_UPLOAD_FILE_RS    (DEF_PACK_BASE + 20)
+//文件内容请求
+#define DEF_PACK_FILE_CONTENT_RQ    (DEF_PACK_BASE + 21)
+//文件内容回复
+#define DEF_PACK_FILE_CONTENT_RS    (DEF_PACK_BASE + 22)
+//上传文件请求
+#define DEF_PACK_FILE_DOWNLOAD_RQ    (DEF_PACK_BASE + 23)
+//上传文件回复
+#define DEF_PACK_FILE_DOWNLOAD_RS    (DEF_PACK_BASE + 24)
 //注册请求结果
 #define tel_is_exist        (0)
 #define register_success    (1)
@@ -107,14 +125,10 @@
 #define chat_room_no_exist   2
 #define chat_success         0
 
-#define MAX_SIZE            (40  )
+#define DEF_FILE_PATH      "/home/shotacon/CLionProjects/Meeting_Server/files/"
 
 
 /////////////////////网络//////////////////////////////////////
-
-
-#define DEF_MAX_BUF      1024
-#define DEF_BUFF_SIZE      4096
 
 
 typedef int PackType;
@@ -364,5 +378,127 @@ struct STRU_CHAT_RS
     int roomid; //方便找是哪个人不在线
     int result;
 
+};
+
+
+//文件信息
+struct FileInfo{
+    FileInfo():file_id(0), size(0), file_fd(0), pos(0), is_pause(0), timestamp(0){
+
+    }
+    int file_id;
+    int user_id;
+    string name;
+    string dir;
+    string time;
+    int size;
+    int room_id;
+    string md5;
+    string type;
+    string absolute_path;
+    int timestamp;
+    int pos;
+    int is_pause;
+    int file_fd;
+};
+
+//上传文件请求
+struct STRU_UPLOAD_FILE_RQ
+{
+    STRU_UPLOAD_FILE_RQ():type(DEF_PACK_UPLOAD_FILE_RQ)
+            ,userid(0),size(0),timestamp(0){
+        memset( fileName , 0, sizeof(fileName) );
+        memset( dir , 0, sizeof(dir) );
+        memset( md5 , 0, sizeof(md5) );
+        memset( fileType , 0, sizeof(fileType) );
+        memset( time , 0, sizeof(time) );
+    }
+    PackType type;
+    int timestamp;//时间戳用于区分不同任务
+    int userid; //服务器与时间戳配合,区分不同任务
+    char fileName[MAX_PATH]; //上传文件名字
+    int size;//大小
+    int room_id;
+    char dir[MAX_PATH];//上传到什么目录
+    char md5[MAX_SIZE]; //上传文件的md5, 用于验证文件是否完整无误
+    char fileType[MAX_SIZE];//文件类型
+    char time[MAX_SIZE]; //上传时间
+};
+
+//上传文件回复
+struct STRU_UPLOAD_FILE_RS
+{
+    STRU_UPLOAD_FILE_RS(): type(DEF_PACK_UPLOAD_FILE_RS)
+            , userid(0), fileid(0),result(1),timestamp(0){
+
+    }
+    PackType type;
+    int timestamp;//时间戳用于区分不同任务
+    int userid;//用户id
+    int fileid; //文件id
+    int result; //结果
+};
+
+
+//文件内容请求
+struct STRU_FILE_CONTENT_RQ
+{
+    STRU_FILE_CONTENT_RQ():type(DEF_PACK_FILE_CONTENT_RQ),
+                           userid(0),fileid(0),len(0),timestamp(0){
+        memset( content , 0 , sizeof(content));
+    }
+    PackType type;
+    int timestamp;//时间戳用于区分不同任务
+    int userid;//用户id
+    int fileid;//文件id
+    char content[DEF_BUFFER];//文件内容 也叫文件块   _DEF_BUFFER  4096
+    int len;//文件内容长度
+};
+
+//文件内容回复
+struct STRU_FILE_CONTENT_RS
+{
+    STRU_FILE_CONTENT_RS():type(DEF_PACK_FILE_CONTENT_RS),
+                           userid(0),fileid(0),result(1),len(0),timestamp(0){
+
+    }
+    PackType type;
+    int timestamp;//时间戳用于区分不同任务
+    int userid;//用户id
+    int fileid;//文件id
+    int result;//结果
+    int len;//文件内容长度
+
+};
+
+//文件下载请求
+struct STRU_FILE_DOWNLOAD_RQ
+{
+    STRU_FILE_DOWNLOAD_RQ():type(DEF_PACK_FILE_DOWNLOAD_RQ),userid(0),size(0),timestamp(0)
+    {
+        memset( fileName , 0, sizeof(fileName));
+        memset( md5 , 0, sizeof(md5));
+    }
+    PackType type;
+    int timestamp;//时间戳用于区分不同任务
+    int userid; //服务器与时间戳配合,区分不同任务
+    char fileName[MAX_PATH]; //上传文件名字
+    int size;//大小
+    char dir[MAX_PATH];
+    char md5[MAX_SIZE]; //上传文件的md5, 用于验证文件是否完整无误
+
+};
+
+//文件下载回复
+struct STRU_FILE_DOWNLOAD_RS
+{
+    STRU_FILE_DOWNLOAD_RS(): type(DEF_PACK_FILE_DOWNLOAD_RS)
+            , userid(0),result(1){
+
+    }
+    PackType type;
+    int timestamp;//时间戳用于区分不同任务
+    int userid;//用户id
+    int result; //结果
 };
 #endif //YY_SERVER_CONFIG_H

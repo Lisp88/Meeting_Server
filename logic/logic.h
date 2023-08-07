@@ -4,9 +4,9 @@
 
 #ifndef YY_SERVER_LOGIC_H
 #define YY_SERVER_LOGIC_H
-#include "../server.h"
+#include "../server/server.h"
 #include "../epoll_net/epoll_net.h"
-
+#include "iostream"
 using std::string;
 
 
@@ -50,6 +50,14 @@ public:
     void user_offline(int clientfd, char* szbuf, int nlen);
     //聊天请求
     void chat_resend(int clientfd, char* szbuf, int nlen);
+    //上传文件头
+    void file_upload(int clientfd, char* szbuf, int nlen);
+    //文件块请求。写
+    void file_content_rq(int clientfd, char* szbuf, int nlen);
+    //下载文件头
+    void file_download_rq(int clientfd, char* szbuf, int nlen);
+    //文件块回复，读
+    void file_content_rs(int clientfd, char* szbuf, int nlen);
 private:
     Server* m_server;
     Sql_Connection_Pool* m_sql_pool;
@@ -57,6 +65,7 @@ private:
     Lock_Map<int, UserInfo*> m_map_id_to_userinfo;
     Lock_Map<int, list<int>> m_map_room_to_userlist;
     Lock_Map<int, list<STRU_CHAT_RQ*>> m_map_room_chatinfo;
+    Lock_Map<int64_t, FileInfo*> m_map_time_fileinfo;//key为用户id+时间戳，因为同一时间一个用户只能发一个文件
 };
 
 
